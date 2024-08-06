@@ -24,7 +24,17 @@ To start using The Crypto Watcher, follow these steps:
     cd thecryptowatcher.github.io
     ```
 
-3. Open `index.html` in your browser to view the app.
+3. Install the required dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4. Run the app:
+    ```bash
+    python app.py
+    ```
+
+5. Open `http://127.0.0.1:5000/` in your browser to view the app.
 
 ## Contact
 
@@ -33,3 +43,4 @@ For any questions or suggestions, please [open an issue](https://github.com/your
 ## License
 
 This project is licensed under the MIT License.
+
