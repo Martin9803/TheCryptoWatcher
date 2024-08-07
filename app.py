@@ -1,16 +1,22 @@
 from flask import Flask, request, jsonify, render_template
 import requests
-from twilio.rest import Client
+import smtplib
+from email.message import EmailMessage
 import os
 
 app = Flask(__name__)
 
-# Twilio configuration from environment variables
-account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
-auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
-twilio_number = os.environ.get('TWILIO_NUMBER')
+# Email configuration
+sender_email = 'Cryptowatcher2023@gmail.com'
+app_key = 'ktvtnuazhwoxruvl'
 
-client = Client(account_sid, auth_token)
+# Mapping of carrier email gateways
+CARRIER_GATEWAYS = {
+    'att': 'txt.att.net',
+    'verizon': 'vtext.com',
+    'tmobile': 'tmomail.net',
+    'sprint': 'messaging.sprintpcs.com'
+}
 
 def get_crypto_prices(crypto_ids):
     url = 'https://api.coingecko.com/api/v3/simple/price'
@@ -22,13 +28,25 @@ def get_crypto_prices(crypto_ids):
     data = response.json()
     return data
 
-def send_text(receiver_number, message):
-    print(f"Sending text to {receiver_number}")
-    client.messages.create(
-        body=message,
-        from_=twilio_number,
-        to=receiver_number
-    )
+def send_text_via_email(phone_number, carrier, message):
+    receiver_email = f"{phone_number}@{CARRIER_GATEWAYS[carrier]}"
+    msg = EmailMessage()
+    msg.set_content(message)
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = "Crypto Watcher Alert"
+
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(sender_email, app_key)
+        server.send_message(msg)
+        server.quit()
+        print(f"Message sent to {receiver_email}")
+        return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
 
 @app.route('/')
 def index():
@@ -41,9 +59,10 @@ def get_prices():
     return jsonify(prices)
 
 @app.route('/send-text', methods=['POST'])
-def text():
+def send_text():
     data = request.json
-    receiver_number = data.get('receiver_number')
+    phone_number = data.get('phone_number')
+    carrier = data.get('carrier')
     selected_cryptos = data.get('selected_cryptos')
     prices = get_crypto_prices(selected_cryptos)
 
@@ -51,11 +70,14 @@ def text():
     for crypto in selected_cryptos:
         current_price = prices[crypto]['usd']
         message_lines.append(f"{crypto.capitalize()}: ${current_price:,.2f}")
-    
-    message = "\n".join(message_lines)
-    send_text(receiver_number, message)
 
-    return jsonify({"status": "success"})
+    message = "\n".join(message_lines)
+    success = send_text_via_email(phone_number, carrier, message)
+
+    if success:
+        return jsonify({"status": "success"})
+    else:
+        return jsonify({"status": "error"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
