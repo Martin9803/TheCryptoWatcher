@@ -1,69 +1,80 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Watcher</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
+let trackingInterval;
+let previousPrices = {
+    'bitcoin': null,
+    'ethereum': null,
+    'dogecoin': null
+};
+
+function getCryptoPrices(cryptoIds) {
+    return fetch('https://thecryptowatcher.herokuapp.com/get-prices', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ crypto_ids: cryptoIds })
+    })
+    .then(response => response.json());
+}
+
+function sendEmail(receiverEmail, subject, message) {
+    return fetch('https://thecryptowatcher.herokuapp.com/send-email', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ receiver_email: receiverEmail, subject: subject, message: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            alert(`Email sent to ${receiverEmail} with subject "${subject}"`);
+        } else {
+            alert(`Failed to send email to ${receiverEmail}`);
         }
-        pre {
-            background-color: #f4f4f4;
-            padding: 10px;
-            border-radius: 5px;
-            overflow: auto;
-        }
-    </style>
-</head>
-<body>
-    <h1>Crypto Watcher</h1>
-    <p>Enter the receiver's email:</p>
-    <input type="email" id="receiverEmail" placeholder="Receiver's email">
+    });
+}
+
+function startTracking() {
+    const receiverEmail = document.getElementById('receiverEmail').value;
+    const selectedCryptos = Array.from(document.querySelectorAll('input[name="cryptos"]:checked')).map(checkbox => checkbox.value);
     
-    <p>Select the cryptocurrencies you want to track:</p>
-    <input type="checkbox" id="bitcoin" name="cryptos" value="bitcoin"> Bitcoin<br>
-    <input type="checkbox" id="ethereum" name="cryptos" value="ethereum"> Ethereum<br>
-    <input type="checkbox" id="dogecoin" name="cryptos" value="dogecoin"> Dogecoin<br>
-
-    <button onclick="startTracking()">Start Tracking</button>
-    <button onclick="stopTracking()">Stop Tracking</button>
-
-    <p id="message"></p>
-
-    <h2>Python Code Sample</h2>
-    <pre>
-import requests
-import time
-import smtplib
-import sys
-import select
-
-# This function grabs the usd prices
-def get_crypto_prices(crypto_ids):
-    url = 'https://api.coingecko.com/api/v3/simple/price'
-    parameters = {
-        'ids': ','.join(crypto_ids),
-        'vs_currencies': 'usd'
+    if (selectedCryptos.length === 0) {
+        alert("No cryptocurrencies selected.");
+        return;
     }
-    response = requests.get(url, params=parameters)
-    data = response.json()
-    return data
 
-def send_email(receiver_email, subject, message):
-    email = "cryptowatcher2023@gmail.com"
-    text = f"Subject: {subject}\n\n{message}"
-    
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.starttls()
+    const subject = "Current Cryptocurrency Prices";
+    document.getElementById('message').innerText = "Tracking cryptocurrencies. Press 'Stop Tracking' to stop.";
 
-    server.login(email, "ktvtnuazhwoxruvl")
-    server.sendmail(email, receiver_email, text)
-    server.quit()
+    trackingInterval = setInterval(() => {
+        getCryptoPrices(selectedCryptos).then(prices => {
+            let messageLines = [];
 
-def track_prices_and_send_email(selected_cryptos, receiver_email):
-    subject = "Current Cryptocurrency Prices"
-    previous_prices = {crypto: None for crypto in selected_cryptos}
-    
-    while True:
-        prices = get_crypto_prices(selected_
+            selectedCryptos.forEach(crypto => {
+                const currentPrice = prices[crypto].usd;
+                const previousPrice = previousPrices[crypto];
+
+                let change;
+                if (previousPrice === null) {
+                    change = "N/A";
+                } else {
+                    const percentageChange = ((currentPrice - previousPrice) / previousPrice) * 100;
+                    change = percentageChange > 0 ? `up ${percentageChange.toFixed(2)}%` : 
+                            percentageChange < 0 ? `down ${Math.abs(percentageChange).toFixed(2)}%` : 
+                            "no change";
+                }
+
+                messageLines.push(`${crypto.charAt(0).toUpperCase() + crypto.slice(1)}: $${currentPrice.toFixed(2)} (${change})`);
+                previousPrices[crypto] = currentPrice;
+            });
+
+            const message = messageLines.join('\n');
+            sendEmail(receiverEmail, subject, message);
+        });
+    }, 30000); // 30 seconds interval
+}
+
+function stopTracking() {
+    clearInterval(trackingInterval);
+    document.getElementById('message').innerText = "Tracking stopped.";
+}
