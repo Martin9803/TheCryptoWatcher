@@ -20,11 +20,16 @@ def send_email(receiver_email, subject, message):
     password = os.environ.get('EMAIL_PASSWORD')
     text = f"Subject: {subject}\n\n{message}"
 
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.starttls()
-    server.login(email, password)
-    server.sendmail(email, receiver_email, text)
-    server.quit()
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(email, password)
+        server.sendmail(email, receiver_email, text)
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"Error: {e}")
+        return False
 
 @app.route('/')
 def index():
@@ -42,9 +47,11 @@ def email():
     receiver_email = data.get('receiver_email')
     subject = data.get('subject')
     message = data.get('message')
-    send_email(receiver_email, subject, message)
-    return jsonify({"status": "success"})
+    success = send_email(receiver_email, subject, message)
+    if success:
+        return jsonify({"status": "success"})
+    else:
+        return jsonify({"status": "error"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
-
