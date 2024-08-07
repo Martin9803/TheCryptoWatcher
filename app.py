@@ -1,11 +1,14 @@
 import requests
 import time
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from email.message import EmailMessage
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
+
+# Import the senderEmail, getawayAddress, and appKey from the content module
+senderEmail = 'Cryptowatcher2023@gmail.com'
+appKey = 'ktvtnuazhwoxruvl'
 
 def get_crypto_prices(crypto_ids):
     url = 'https://api.coingecko.com/api/v3/simple/price'
@@ -41,21 +44,16 @@ def track_prices():
     return jsonify({"status": "success"}), 200
 
 def send_email(to, subject, body):
-    sender_email = 'Cryptowatcher2023@gmail.com'
-    app_key = 'ktvtnuazhwoxruvl'
-
-    msg = MIMEMultipart()
-    msg['From'] = sender_email
+    msg = EmailMessage()
+    msg.set_content(body)
+    msg['From'] = senderEmail
     msg['To'] = to
     msg['Subject'] = subject
 
-    msg.attach(MIMEText(body, 'plain'))
-
     server = smtplib.SMTP('smtp.gmail.com', 587)
     server.starttls()
-    server.login(sender_email, app_key)
-    text = msg.as_string()
-    server.sendmail(sender_email, to, text)
+    server.login(senderEmail, appKey)
+    server.send_message(msg)
     server.quit()
 
 if __name__ == '__main__':
