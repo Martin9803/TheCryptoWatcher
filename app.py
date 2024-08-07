@@ -28,7 +28,7 @@ def send_email(receiver_email, subject, message):
         server.quit()
         return True
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error sending email: {e}")
         return False
 
 @app.route('/')
