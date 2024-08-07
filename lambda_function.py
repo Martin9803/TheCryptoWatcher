@@ -1,11 +1,19 @@
 import json
 import boto3
+from urllib.parse import parse_qs
 
 def lambda_handler(event, context):
     # Parse form data
-    phone = event['phone']
-    provider = event['provider']
-    cryptos = event['cryptos']
+    body = parse_qs(event['body'])
+    phone = body.get('phone', [None])[0]
+    provider = body.get('provider', [None])[0]
+    cryptos = body.get('cryptos', [])
+
+    if not phone or not provider or not cryptos:
+        return {
+            'statusCode': 400,
+            'body': json.dumps('Missing required fields')
+        }
 
     # Store user data in DynamoDB (or any other database)
     dynamodb = boto3.resource('dynamodb')
