@@ -25,7 +25,12 @@ def track_prices():
     cryptos = data['cryptos']
     
     email = phone_number + "@" + provider
+
+    # Send thank you message
+    thank_you_message = "Thank you for using the Crypto Watcher, you will be sent updates at 12pm and 12am"
+    send_email(email, 'Welcome to Crypto Watcher', thank_you_message)
     
+    # Initial price update
     prices = get_crypto_prices(cryptos)
     message = ""
     for crypto in cryptos:
@@ -55,4 +60,3 @@ def send_email(to, subject, body):
 
 if __name__ == '__main__':
     app.run(debug=True)
-
