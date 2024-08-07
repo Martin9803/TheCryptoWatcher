@@ -34,7 +34,7 @@ def send_text_via_email(phone_number, carrier, message):
     msg.set_content(message)
     msg['From'] = sender_email
     msg['To'] = receiver_email
-    msg['Subject'] = "Crypto Watcher Alert"
+    msg['Subject'] = "Price Update"
 
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -78,6 +78,9 @@ def send_text():
         return jsonify({"status": "success"})
     else:
         return jsonify({"status": "error"}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 if __name__ == '__main__':
     app.run(debug=True)
