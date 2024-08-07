@@ -1,52 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Watcher</title>
-    <script>
-        async function submitForm() {
-            const phone = document.getElementById('phone').value;
-            const provider = document.getElementById('provider').value;
-            const cryptos = Array.from(document.querySelectorAll('input[name="crypto"]:checked')).map(cb => cb.value);
-            
-            const response = await fetch('/track', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ phone, provider, cryptos })
-            });
-            
-            const result = await response.json();
-            alert(result.status);
-        }
-    </script>
+  <title>Crypto Watcher</title>
 </head>
 <body>
-    <h1>Crypto Watcher</h1>
-    <form onsubmit="event.preventDefault(); submitForm();">
-        <label for="phone">Phone Number:</label>
-        <input type="text" id="phone" name="phone" required><br><br>
-        
-        <label for="provider">Provider:</label>
-        <select id="provider" name="provider" required>
-            <option value="vtext.com">Verizon</option>
-            <option value="txt.att.net">AT&T</option>
-            <option value="tmomail.net">T-Mobile</option>
-            <!-- Add other providers as needed -->
-        </select><br><br>
-        
-        <label for="cryptos">Select Cryptocurrencies:</label><br>
-        <input type="checkbox" id="bitcoin" name="crypto" value="bitcoin">
-        <label for="bitcoin">Bitcoin</label><br>
-        <input type="checkbox" id="ethereum" name="crypto" value="ethereum">
-        <label for="ethereum">Ethereum</label><br>
-        <input type="checkbox" id="dogecoin" name="crypto" value="dogecoin">
-        <label for="dogecoin">Dogecoin</label><br><br>
-        
-        <input type="submit" value="Start Tracking">
-    </form>
+  <h1>Subscribe to Crypto Price Updates</h1>
+  <form action="https://your-backend-service-url" method="post">
+    <label for="phone">Phone Number:</label><br>
+    <input type="text" id="phone" name="phone"><br>
+    <label for="provider">Provider:</label><br>
+    <select id="provider" name="provider">
+      <option value="1">Verizon</option>
+      <option value="2">AT&T</option>
+      <option value="3">T-Mobile</option>
+      <option value="4">Sprint</option>
+    </select><br>
+    <label for="cryptos">Cryptocurrencies:</label><br>
+    <input type="checkbox" id="bitcoin" name="cryptos" value="bitcoin"> Bitcoin<br>
+    <input type="checkbox" id="ethereum" name="cryptos" value="ethereum"> Ethereum<br>
+    <input type="checkbox" id="dogecoin" name="cryptos" value="dogecoin"> Dogecoin<br><br>
+    <input type="submit" value="Subscribe">
+  </form>
 </body>
 </html>
 
