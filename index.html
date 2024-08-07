@@ -4,128 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crypto Watcher</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
+    <script>
+        async function submitForm() {
+            const phone = document.getElementById('phone').value;
+            const provider = document.getElementById('provider').value;
+            const cryptos = Array.from(document.querySelectorAll('input[name="crypto"]:checked')).map(cb => cb.value);
+            
+            const response = await fetch('/track', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ phone, provider, cryptos })
+            });
+            
+            const result = await response.json();
+            alert(result.status);
         }
-    </style>
+    </script>
 </head>
 <body>
     <h1>Crypto Watcher</h1>
-    <p>Enter the receiver's phone number (10 digits):</p>
-    <input type="text" id="phoneNumber" placeholder="Receiver's phone number">
-
-    <p>Select the receiver's carrier:</p>
-    <select id="carrier">
-        <option value="att">AT&T</option>
-        <option value="verizon">Verizon</option>
-        <option value="tmobile">T-Mobile</option>
-        <option value="sprint">Sprint</option>
-    </select>
-    
-    <p>Select the cryptocurrencies you want to track:</p>
-    <input type="checkbox" id="bitcoin" name="cryptos" value="bitcoin"> Bitcoin<br>
-    <input type="checkbox" id="ethereum" name="cryptos" value="ethereum"> Ethereum<br>
-    <input type="checkbox" id="dogecoin" name="cryptos" value="dogecoin"> Dogecoin<br>
-
-    <button onclick="startTracking()">Start Tracking</button>
-    <button onclick="stopTracking()">Stop Tracking</button>
-
-    <p id="message"></p>
-
-    <script>
-        let trackingInterval;
-        let previousPrices = {
-            'bitcoin': null,
-            'ethereum': null,
-            'dogecoin': null
-        };
-
-        function getCryptoPrices(cryptoIds) {
-            return fetch('https://thecryptowatcher.herokuapp.com/get-prices', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ crypto_ids: cryptoIds })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Prices fetched:', data);
-                return data;
-            })
-            .catch(error => {
-                console.error('Error fetching prices:', error);
-            });
-        }
-
-        function sendText(phoneNumber, carrier, selectedCryptos, message) {
-            return fetch('https://thecryptowatcher.herokuapp.com/send-text', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ phone_number: phoneNumber, carrier: carrier, selected_cryptos: selectedCryptos, message: message })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success") {
-                    alert(`Text sent to ${phoneNumber}`);
-                    console.log(`Text sent to ${phoneNumber}`);
-                } else {
-                    alert(`Failed to send text to ${phoneNumber}`);
-                    console.error(`Failed to send text to ${phoneNumber}`);
-                }
-            })
-            .catch(error => {
-                console.error('Error sending text:', error);
-            });
-        }
-
-        function startTracking() {
-            const phoneNumber = document.getElementById('phoneNumber').value;
-            const carrier = document.getElementById('carrier').value;
-            const selectedCryptos = Array.from(document.querySelectorAll('input[name="cryptos"]:checked')).map(checkbox => checkbox.value);
-            
-            if (selectedCryptos.length === 0) {
-                alert("No cryptocurrencies selected.");
-                return;
-            }
-
-            document.getElementById('message').innerText = "Tracking cryptocurrencies. Press 'Stop Tracking' to stop.";
-
-            trackingInterval = setInterval(() => {
-                getCryptoPrices(selectedCryptos).then(prices => {
-                    let messageLines = [];
-
-                    selectedCryptos.forEach(crypto => {
-                        const currentPrice = prices[crypto].usd;
-                        const previousPrice = previousPrices[crypto];
-
-                        let change;
-                        if (previousPrice === null) {
-                            change = "N/A";
-                        } else {
-                            const percentageChange = ((currentPrice - previousPrice) / previousPrice) * 100;
-                            change = percentageChange > 0 ? `up ${percentageChange.toFixed(2)}%` : 
-                                    percentageChange < 0 ? `down ${Math.abs(percentageChange).toFixed(2)}%` : 
-                                    "no change";
-                        }
-
-                        messageLines.push(`${crypto.charAt(0).toUpperCase() + crypto.slice(1)}: $${currentPrice.toFixed(2)} (${change})`);
-                        previousPrices[crypto] = currentPrice;
-                    });
-
-                    const message = messageLines.join('\n');
-                    sendText(phoneNumber, carrier, selectedCryptos, message);
-                });
-            }, 30000); // 30 seconds interval
-        }
-
-        function stopTracking() {
-            clearInterval(trackingInterval);
-            document.getElementById('message').innerText = "Tracking stopped.";
-        }
-    </script>
+    <form onsubmit="event.preventDefault(); submitForm();">
+        <label for="phone">Phone Number:</label>
+        <input type="text" id="phone" name="phone" required><br><br>
+        
+        <label for="provider">Provider:</label>
+        <select id="provider" name="provider" required>
+            <option value="vtext.com">Verizon</option>
+            <option value="txt.att.net">AT&T</option>
+            <option value="tmomail.net">T-Mobile</option>
+            <!-- Add other providers as needed -->
+        </select><br><br>
+        
+        <label for="cryptos">Select Cryptocurrencies:</label><br>
+        <input type="checkbox" id="bitcoin" name="crypto" value="bitcoin">
+        <label for="bitcoin">Bitcoin</label><br>
+        <input type="checkbox" id="ethereum" name="crypto" value="ethereum">
+        <label for="ethereum">Ethereum</label><br>
+        <input type="checkbox" id="dogecoin" name="crypto" value="dogecoin">
+        <label for="dogecoin">Dogecoin</label><br><br>
+        
+        <input type="submit" value="Start Tracking">
+    </form>
 </body>
 </html>
+
