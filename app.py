@@ -5,10 +5,10 @@ import os
 
 app = Flask(__name__)
 
-# Twilio configuration
-account_sid = 'ACc59e829234e63e6094187e105f38af89'
-auth_token = '0eb2a0e44da115c0fa75abcf0a31b9e9'
-twilio_number = '+18553711336'
+# Twilio configuration from environment variables
+account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+twilio_number = os.environ.get('TWILIO_NUMBER')
 
 client = Client(account_sid, auth_token)
 
@@ -59,4 +59,5 @@ def text():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
 
