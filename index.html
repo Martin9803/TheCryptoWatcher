@@ -12,9 +12,9 @@
 </head>
 <body>
     <h1>Crypto Watcher</h1>
-    <p>Enter the receiver's email:</p>
-    <input type="email" id="receiverEmail" placeholder="Receiver's email">
-    
+    <p>Enter the receiver's phone number (with country code, e.g., +1234567890):</p>
+    <input type="text" id="phoneNumber" placeholder="Receiver's phone number">
+
     <p>Select the cryptocurrencies you want to track:</p>
     <input type="checkbox" id="bitcoin" name="cryptos" value="bitcoin"> Bitcoin<br>
     <input type="checkbox" id="ethereum" name="cryptos" value="ethereum"> Ethereum<br>
@@ -51,31 +51,31 @@
             });
         }
 
-        function sendEmail(receiverEmail, subject, message) {
-            return fetch('https://thecryptowatcher.herokuapp.com/send-email', {
+        function sendText(receiverNumber, selectedCryptos, message) {
+            return fetch('https://thecryptowatcher.herokuapp.com/send-text', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ receiver_email: receiverEmail, subject: subject, message: message })
+                body: JSON.stringify({ receiver_number: receiverNumber, selected_cryptos: selectedCryptos, message: message })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.status === "success") {
-                    alert(`Email sent to ${receiverEmail} with subject "${subject}"`);
-                    console.log(`Email sent to ${receiverEmail} with subject "${subject}"`);
+                    alert(`Text sent to ${receiverNumber}`);
+                    console.log(`Text sent to ${receiverNumber}`);
                 } else {
-                    alert(`Failed to send email to ${receiverEmail}`);
-                    console.error(`Failed to send email to ${receiverEmail}`);
+                    alert(`Failed to send text to ${receiverNumber}`);
+                    console.error(`Failed to send text to ${receiverNumber}`);
                 }
             })
             .catch(error => {
-                console.error('Error sending email:', error);
+                console.error('Error sending text:', error);
             });
         }
 
         function startTracking() {
-            const receiverEmail = document.getElementById('receiverEmail').value;
+            const phoneNumber = document.getElementById('phoneNumber').value;
             const selectedCryptos = Array.from(document.querySelectorAll('input[name="cryptos"]:checked')).map(checkbox => checkbox.value);
             
             if (selectedCryptos.length === 0) {
@@ -83,7 +83,6 @@
                 return;
             }
 
-            const subject = "Current Cryptocurrency Prices";
             document.getElementById('message').innerText = "Tracking cryptocurrencies. Press 'Stop Tracking' to stop.";
 
             trackingInterval = setInterval(() => {
@@ -109,7 +108,7 @@
                     });
 
                     const message = messageLines.join('\n');
-                    sendEmail(receiverEmail, subject, message);
+                    sendText(phoneNumber, selectedCryptos, message);
                 });
             }, 30000); // 30 seconds interval
         }
