@@ -17,7 +17,7 @@ def get_crypto_prices(crypto_ids):
 
 def send_email(receiver_email, subject, message):
     email = "cryptowatcher2023@gmail.com"
-    password = os.environ.get('EMAIL_PASSWORD')
+    password = 'ktvtnuazhwoxruvl'
     text = f"Subject: {subject}\n\n{message}"
 
     try:
