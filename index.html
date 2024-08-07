@@ -12,9 +12,17 @@
 </head>
 <body>
     <h1>Crypto Watcher</h1>
-    <p>Enter the receiver's phone number (with country code, e.g., +1234567890):</p>
+    <p>Enter the receiver's phone number (10 digits):</p>
     <input type="text" id="phoneNumber" placeholder="Receiver's phone number">
 
+    <p>Select the receiver's carrier:</p>
+    <select id="carrier">
+        <option value="att">AT&T</option>
+        <option value="verizon">Verizon</option>
+        <option value="tmobile">T-Mobile</option>
+        <option value="sprint">Sprint</option>
+    </select>
+    
     <p>Select the cryptocurrencies you want to track:</p>
     <input type="checkbox" id="bitcoin" name="cryptos" value="bitcoin"> Bitcoin<br>
     <input type="checkbox" id="ethereum" name="cryptos" value="ethereum"> Ethereum<br>
@@ -51,22 +59,22 @@
             });
         }
 
-        function sendText(receiverNumber, selectedCryptos, message) {
+        function sendText(phoneNumber, carrier, selectedCryptos, message) {
             return fetch('https://thecryptowatcher.herokuapp.com/send-text', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ receiver_number: receiverNumber, selected_cryptos: selectedCryptos, message: message })
+                body: JSON.stringify({ phone_number: phoneNumber, carrier: carrier, selected_cryptos: selectedCryptos, message: message })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.status === "success") {
-                    alert(`Text sent to ${receiverNumber}`);
-                    console.log(`Text sent to ${receiverNumber}`);
+                    alert(`Text sent to ${phoneNumber}`);
+                    console.log(`Text sent to ${phoneNumber}`);
                 } else {
-                    alert(`Failed to send text to ${receiverNumber}`);
-                    console.error(`Failed to send text to ${receiverNumber}`);
+                    alert(`Failed to send text to ${phoneNumber}`);
+                    console.error(`Failed to send text to ${phoneNumber}`);
                 }
             })
             .catch(error => {
@@ -76,6 +84,7 @@
 
         function startTracking() {
             const phoneNumber = document.getElementById('phoneNumber').value;
+            const carrier = document.getElementById('carrier').value;
             const selectedCryptos = Array.from(document.querySelectorAll('input[name="cryptos"]:checked')).map(checkbox => checkbox.value);
             
             if (selectedCryptos.length === 0) {
@@ -108,7 +117,7 @@
                     });
 
                     const message = messageLines.join('\n');
-                    sendText(phoneNumber, selectedCryptos, message);
+                    sendText(phoneNumber, carrier, selectedCryptos, message);
                 });
             }, 30000); // 30 seconds interval
         }
